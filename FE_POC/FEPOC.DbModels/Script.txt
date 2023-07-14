@@ -1,0 +1,10 @@
+dotnet ef dbcontext scaffold `
+	"Server=localhost;Database=escape_ci_biz;User Id=solari;Password=Udine%123;TrustServerCertificate=True" `
+	Microsoft.EntityFrameworkCore.SqlServer `
+	--context-dir DAL\\SqlServer `
+	--context DB `
+	-o DAL\\Models `
+	-t ChangedRecordsQueue, `
+	-t AREE, `
+	-t INSEDIAMENTI `
+	-f
