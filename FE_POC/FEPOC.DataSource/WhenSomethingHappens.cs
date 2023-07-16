@@ -1,7 +1,7 @@
 ﻿using FEPOC.Contracts;
 using FastEndpoints;
 
-namespace StoreFront;
+namespace FEPOC.DataSource;
 
 internal class WhenSomethingHappens : IEventHandler<SomethingHappened>
 {

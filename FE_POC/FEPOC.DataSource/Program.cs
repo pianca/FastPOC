@@ -1,17 +1,18 @@
-﻿using FEPOC.Contracts;
-using FastEndpoints;
-using Grpc.Core;
-using StoreFront;
-using System.Runtime.CompilerServices;
-using FEPOC.DataSource.DAL.Models;
+﻿using FEPOC.DataSource.DAL.Models;
 using FEPOC.DataSource.Pipeline;
+using Mapster;
+
+TypeAdapterConfig.GlobalSettings.EnableJsonMapping();
 
 var builder = WebApplication.CreateBuilder();
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
-builder.Services.AddSingleton<DbReaderQueue<ChangedRecordsQueue>>();
-builder.Services.AddHostedService<DbReaderWorker>();
-builder.Services.AddHostedService<DataProcessorWorker>();
+builder.Services.AddSingleton<InMemoryState>();
+builder.Services.AddSingleton<ToCloudQueue<ChangedRecordsQueue>>();
+builder.Services.AddSingleton<LocalHandledChangesQueue>();
+builder.Services.AddSingleton<RemoteHandledChangesQueue>();
+builder.Services.AddHostedService<PipelineWorker>();
+builder.Services.AddHostedService<SetChangesAsLocalHandledWorker>();
 
 var app = builder.Build();
 

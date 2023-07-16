@@ -1,7 +1,10 @@
 using System.Text.Json;
 using FEPOC.DataSource.DAL.Models;
+using FEPOC.DataSource.DTO;
 
 namespace FEPOC.DataSource.Pipeline;
+
+public record ParsedObjectResult(string Type, bool IsOk, object? Result);
 
 public static class Parser
 {
@@ -9,17 +12,28 @@ public static class Parser
     {
         PropertyNameCaseInsensitive = true
     };
-    
-    public static object Parse(this ChangedRecordsQueue changed)
+
+    public static ParsedObjectResult Parse(this ChangedRecordsQueue changed)
     {
         switch (changed.RecordTable)
         {
-            case "AREE":
-                return JsonSerializer.Deserialize<Aree[]>(changed.RecordValue, _settings)[0];
-            case "INSEDIAMENTI":
-                return JsonSerializer.Deserialize<Insediamenti[]>(changed.RecordValue, _settings)[0];
+            case Area.DdType:
+                return new ParsedObjectResult(
+                    Type:Area.DdType,
+                    true,
+                    Result: JsonSerializer.Deserialize<Area[]>(changed.RecordValue, _settings)
+                        ?.FirstOrDefault()
+                    );
+
+            case Insediamento.DdType:
+                return new ParsedObjectResult(
+                    Type:Insediamento.DdType,
+                    true,
+                    Result: JsonSerializer.Deserialize<Insediamento[]>(changed.RecordValue, _settings)
+                        ?.FirstOrDefault()
+                    );
             default:
-                throw new NotSupportedException();
+                return new ParsedObjectResult("", false, null);
         }
     }
 }

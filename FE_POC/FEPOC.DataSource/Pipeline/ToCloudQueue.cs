@@ -3,12 +3,12 @@ using FEPOC.DataSource.DAL.Models;
 
 namespace FEPOC.DataSource.Pipeline;
 
-public class DbReaderQueue<T> where T : ChangedRecordsQueue
+public class ToCloudQueue<T> where T : ChangedRecordsQueue
 {
-    private readonly ILogger<DbReaderQueue<T>> _logger;
+    private readonly ILogger<ToCloudQueue<T>> _logger;
     private readonly Channel<T> _channel;
 
-    public DbReaderQueue(ILogger<DbReaderQueue<T>> logger)
+    public ToCloudQueue(ILogger<ToCloudQueue<T>> logger)
     {
         _logger = logger;
         _channel = Channel.CreateBounded<T>(new BoundedChannelOptions(10000));
