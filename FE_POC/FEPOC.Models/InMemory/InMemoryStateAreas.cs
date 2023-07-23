@@ -1,23 +1,36 @@
-using FEPOC.DataSource.DTO;
-using Mapster;
+using System;
+using FEPOC.Models.DTO;
+using Microsoft.Extensions.Logging;
 
-namespace FEPOC.DataSource.Pipeline;
+
+namespace FEPOC.Models.InMemory;
 
 public partial class InMemoryState
 {
-    public bool PushChange(Area a, ChangedRecordInfo change)
+    private bool PushChange(Area a, ChangedRecordInfo change)
     {
+        bool ok = false;
         switch (change.ChangeType)
         {
             case "I":
-                return Insert(a,change);
+                ok = Insert(a,change);
+                break;
             case "U":
-                return Update(a,change);
+                ok = Update(a,change);
+                break;
             case "D":
-                return Delete(a,change);
+                ok = Delete(a,change);
+                break;
             default:
-                throw new NotSupportedException($"Change type = {change.ChangeType}");
+                throw new NotSupportedException($"PushChange: Change type = {change.ChangeType}");
         }
+
+        if (ok)
+        {
+            Version = new Version(change.Id, change.Timestamp, DateTimeOffset.Now);
+        }
+
+        return ok;
     }
 
     private bool Insert(Area a, ChangedRecordInfo change)
@@ -29,14 +42,14 @@ public partial class InMemoryState
         }
 
         _aree[a.Id] = a;
-        var insedKey = a.IdInsediamento.Adapt<InsediamentoId>();
-        if (_insediamentiWithAreas.ContainsKey(insedKey))
+        
+        if (_insediamentiWithAreas.ContainsKey(a.IdInsediamento))
         {
-            _insediamentiWithAreas[insedKey].Add(a.Id, a.Adapt<AreaId>());
+            _insediamentiWithAreas[a.IdInsediamento].Add(a.Id);
         }
         else
         {
-            _logger.LogWarning("Insediamento {insediamentoId} not found", insedKey.Id);
+            _logger.LogWarning("Insediamento {insediamentoId} not found", a.IdInsediamento);
         }
         return true;
     }
@@ -50,14 +63,14 @@ public partial class InMemoryState
         }
 
         _aree.Remove(a.Id);
-        var insedKey = a.IdInsediamento.Adapt<InsediamentoId>();
-        if (_insediamentiWithAreas.ContainsKey(insedKey))
+        
+        if (_insediamentiWithAreas.ContainsKey(a.IdInsediamento))
         {
-            _insediamentiWithAreas[insedKey].Remove(a.Id);
+            _insediamentiWithAreas[a.IdInsediamento].Remove(a.Id);
         }
         else
         {
-            _logger.LogWarning("Insediamento {insediamentoId} not found", insedKey.Id);
+            _logger.LogWarning("Insediamento {insediamentoId} not found", a.IdInsediamento);
         }
         return true;
     }
@@ -74,24 +87,22 @@ public partial class InMemoryState
         _aree[newA.Id] = newA;
         if (oldA.IdInsediamento != newA.IdInsediamento)
         {
-            var oldInsedKey = oldA.IdInsediamento.Adapt<InsediamentoId>();
-            if (_insediamentiWithAreas.ContainsKey(oldInsedKey))
+            if (_insediamentiWithAreas.ContainsKey(oldA.IdInsediamento))
             {
-                _insediamentiWithAreas[oldInsedKey].Remove(oldA.Id);
+                _insediamentiWithAreas[oldA.IdInsediamento].Remove(oldA.Id);
             }
             else
             {
-                _logger.LogWarning("Old Insediamento {insediamentoId} not found", oldInsedKey.Id);
+                _logger.LogWarning("Old Insediamento {insediamentoId} not found", oldA.IdInsediamento);
             }
 
-            var insedKey = newA.IdInsediamento.Adapt<InsediamentoId>();
-            if (_insediamentiWithAreas.ContainsKey(insedKey))
+            if (_insediamentiWithAreas.ContainsKey(newA.IdInsediamento))
             {
-                _insediamentiWithAreas[insedKey].Add(newA.Id, newA.Adapt<AreaId>());
+                _insediamentiWithAreas[newA.IdInsediamento].Add(newA.Id);
             }
             else
             {
-                _logger.LogWarning("New Insediamento {insediamentoId} not found", insedKey.Id);
+                _logger.LogWarning("New Insediamento {insediamentoId} not found", newA.IdInsediamento);
             }
         }
 

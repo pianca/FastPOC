@@ -24,10 +24,20 @@
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="7.0.0" />
     <!--<ProjectReference Include="..\..\FastEndpoints\Library\Src\Messaging.Remote\FastEndpoints.Messaging.Remote.csproj" />-->
     <ProjectReference Include="..\FEPOC.Contracts\FEPOC.Contracts.csproj" />
+    <ProjectReference Include="..\FEPOC.Models\FEPOC.Models.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="DAL\Models\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="FEPOC.Contracts">
+      <HintPath>..\FEPOC.DataServer\bin\Debug\net7.0\FEPOC.Contracts.dll</HintPath>
+    </Reference>
+    <Reference Include="FEPOC.Models">
+      <HintPath>..\FEPOC.DataServer\bin\Debug\net7.0\FEPOC.Models.dll</HintPath>
+    </Reference>
   </ItemGroup>
   
 </Project>

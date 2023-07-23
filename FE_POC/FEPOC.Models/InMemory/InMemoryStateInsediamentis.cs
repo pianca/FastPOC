@@ -1,23 +1,33 @@
-using FEPOC.DataSource.DTO;
-using Mapster;
+using System;
+using System.Collections.Generic;
+using FEPOC.Models.DTO;
+using Microsoft.Extensions.Logging;
 
-namespace FEPOC.DataSource.Pipeline;
+namespace FEPOC.Models.InMemory;
 
 public partial class InMemoryState
 {
-    public bool PushChange(Insediamento i, ChangedRecordInfo change)
+    private bool PushChange(Insediamento i, ChangedRecordInfo change)
     {
+        bool ok = false;
         switch (change.ChangeType)
         {
             case "I":
-                return Insert(i,change);
+                ok = Insert(i,change);  break;
             case "U":
-                return Update(i,change);
+                ok = Update(i,change);  break;
             case "D":
-                return Delete(i,change);
+                ok = Delete(i,change);  break;
             default:
-                throw new NotSupportedException($"Change type = {change.ChangeType}");
+                throw new NotSupportedException($"PushChange: Change type = {change.ChangeType}");
         }
+        
+        if (ok)
+        {
+            Version = new Version(change.Id, change.Timestamp, DateTimeOffset.Now);
+        }
+
+        return ok;
     }
 
     private bool Insert(Insediamento i, ChangedRecordInfo change)
@@ -29,8 +39,7 @@ public partial class InMemoryState
         }
 
         _insediamenti[i.Id] = i;
-        var insedKey = i.Id.Adapt<InsediamentoId>();
-        _insediamentiWithAreas[insedKey].Add(i.Id, i.Adapt<AreaId>());
+        _insediamentiWithAreas[i.Id] = new SortedSet<int>();
         return true;
     }
 
@@ -43,8 +52,7 @@ public partial class InMemoryState
         }
 
         _insediamenti.Remove(i.Id);
-        var insedKey = i.Id.Adapt<InsediamentoId>();
-        _insediamentiWithAreas[insedKey].Remove(i.Id);
+        _insediamentiWithAreas.Remove(i.Id);
         return true;
     }
     
@@ -56,7 +64,6 @@ public partial class InMemoryState
             return false;
         }
 
-        var oldI = _insediamenti[newI.Id];
         _insediamenti[newI.Id] = newI;
         return true;
     }

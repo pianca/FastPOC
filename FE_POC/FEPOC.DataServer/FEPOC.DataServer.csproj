@@ -8,14 +8,27 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FastEndpoints.Messaging.Remote" Version="5.*" />
+    <PackageReference Include="Mapster" Version="7.3.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <!--<ProjectReference Include="..\..\FastEndpoints\Library\Src\Messaging.Remote\FastEndpoints.Messaging.Remote.csproj" />-->
     <ProjectReference Include="..\FEPOC.Contracts\FEPOC.Contracts.csproj" />
-    <ProjectReference Include="..\FEPOC.GUI\FEPOC.GUI.csproj" />
+
+    <PackageReference Include="FastEndpoints" Version="5.*" />
+    <PackageReference Include="FastEndpoints.ClientGen" Version="5.*" />
+    <PackageReference Include="FastEndpoints.Swagger" Version="5.*" />
+    <PackageReference Include="FastEndpoints.Messaging.Remote" Version="5.14.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.9" />
+
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="DAL\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="FEPOC.Contracts">
+      <HintPath>bin\Debug\net7.0\FEPOC.Contracts.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

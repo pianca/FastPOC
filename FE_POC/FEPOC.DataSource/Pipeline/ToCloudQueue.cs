@@ -3,6 +3,8 @@ using FEPOC.DataSource.DAL.Models;
 
 namespace FEPOC.DataSource.Pipeline;
 
+//TODO: not used
+
 public class ToCloudQueue<T> where T : ChangedRecordsQueue
 {
     private readonly ILogger<ToCloudQueue<T>> _logger;

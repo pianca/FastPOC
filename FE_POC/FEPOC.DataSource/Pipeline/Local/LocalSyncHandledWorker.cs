@@ -2,36 +2,33 @@ using System.Collections.Concurrent;
 using FEPOC.DataSource.DAL.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace FEPOC.DataSource.Pipeline;
-
-public class SetChangesAsLocalHandledWorker : BackgroundService
+namespace FEPOC.DataSource.Pipeline.Local;
+public class LocalSyncHandledWorker : BackgroundService
 {
-    private readonly ILogger<SetChangesAsLocalHandledWorker> _logger;
-    private readonly BlockingCollection<int> _queue;
-    private readonly TimeSpan _period;
+    private readonly ILogger<LocalSyncHandledWorker> _logger;
+    private readonly LocalHandledChangesQueue _inputQueue;
 
-    public SetChangesAsLocalHandledWorker(ILogger<SetChangesAsLocalHandledWorker> logger, RemoteHandledChangesQueue queue)
+    public LocalSyncHandledWorker(ILogger<LocalSyncHandledWorker> logger, 
+        LocalHandledChangesQueue inputQueue)
     {
         _logger = logger;
-        _queue = queue;
-        _period = TimeSpan.FromSeconds(5); //ChangeHandledLocalQueue
+        _inputQueue = inputQueue;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // using PeriodicTimer timer = new(_period);
-        while (
-                !stoppingToken.IsCancellationRequested) //&&
-            // await timer.WaitForNextTickAsync(stoppingToken))
+        _logger.LogInformation("LocalSyncHandledWorker Started");
+        while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
+                await Task.Delay(1000);
                 await DoStuff(stoppingToken);
             }
             catch (Exception e) when (e is not OperationCanceledException &&
                                       e is not TaskCanceledException)
             {
-                _logger.LogError(e, "Exception catched");
+                _logger.LogError(e, "LocalSyncHandledWorker Exception catched");
             }
         }
     }
@@ -39,7 +36,7 @@ public class SetChangesAsLocalHandledWorker : BackgroundService
     private async Task DoStuff(CancellationToken stoppingToken)
     {
         using var db = new DAL.SqlServer.DB();
-        var list = _queue.GetConsumingEnumerable(stoppingToken);
+        var list = _inputQueue.GetConsumingEnumerable(stoppingToken);
         foreach (var changeId in list)
         {
             bool done = false;
@@ -61,6 +58,7 @@ public class SetChangesAsLocalHandledWorker : BackgroundService
                     {
                         _logger.LogInformation("Set change with id {id} as locally handled ", changeId);
                         done = true;
+                        // _outputQueue.Add(changeId);
                     }
                 }
                 catch (Exception e)when (e is not OperationCanceledException &&

@@ -13,4 +13,8 @@
     <!--<ProjectReference Include="..\..\FastEndpoints\Library\Src\Messaging.Core\FastEndpoints.Messaging.Core.csproj" />-->
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FEPOC.Models\FEPOC.Models.csproj" />
+  </ItemGroup>
+
 </Project>

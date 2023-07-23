@@ -1,32 +1,56 @@
-﻿using FEPOC.DataSource.DAL.Models;
+﻿using FastEndpoints;
+using FEPOC.Contracts;
 using FEPOC.DataSource.Pipeline;
+using FEPOC.DataSource.Pipeline.Local;
+using FEPOC.DataSource.Pipeline.Remote;
+using FEPOC.DataSource.Utility;
+using FEPOC.Models.InMemory;
 using Mapster;
 
 TypeAdapterConfig.GlobalSettings.EnableJsonMapping();
+TypeAdapterConfig.GlobalSettings.Default.NameMatchingStrategy(NameMatchingStrategy.IgnoreCase);
 
 var builder = WebApplication.CreateBuilder();
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
+builder.Logging.ClearProviders()
+    .AddConsole()
+    .SetMinimumLevel(LogLevel.Information);
+
+builder.Services.AddSingleton<ParserErrorQueue>();
+builder.Services.AddSingleton<FactoryErrorQueue>();
+
 builder.Services.AddSingleton<InMemoryState>();
-builder.Services.AddSingleton<ToCloudQueue<ChangedRecordsQueue>>();
+
 builder.Services.AddSingleton<LocalHandledChangesQueue>();
+builder.Services.AddSingleton<LocalSyncErrorsQueue>();
+
+builder.Services.AddSingleton<RemoteSyncQueue>();
 builder.Services.AddSingleton<RemoteHandledChangesQueue>();
-builder.Services.AddHostedService<PipelineWorker>();
-builder.Services.AddHostedService<SetChangesAsLocalHandledWorker>();
+builder.Services.AddSingleton<RemoteSyncErrorsQueue>();
+
+builder.Services.AddSingleton<InMemorySnapshotQueue>();
+
+builder.Services.AddHostedService<LocalSyncWorker>();
+builder.Services.AddHostedService<LocalSyncHandledWorker>();
+
+builder.Services.AddHostedService<RemoteSyncWorker>();
+builder.Services.AddHostedService<RemoteSyncHandledWorker>();
 
 var app = builder.Build();
 
-/*
 //todo: rename to MapRemote()
 app.MapRemote("http://localhost:6000", c =>
 {
-    c.Register<SayHelloCommand>();
-    c.Register<CreateOrderCommand, CreateOrderResult>();
-    c.RegisterServerStream<StatusStreamCommand, StatusUpdate>();
-    c.RegisterClientStream<CurrentPosition, ProgressReport>();
-    c.Subscribe<SomethingHappened, WhenSomethingHappens>();
+    // c.Register<SayHelloCommand>();
+    
+    c.Register<SyncChangeInsediamentoCommand, SyncChangeResult>();
+    c.Register<SyncChangeAreaCommand, SyncChangeResult>();
+    c.Register<SyncInitCommand, SyncInitResult>();
+    
+    // c.RegisterServerStream<StatusStreamCommand, StatusUpdate>();
+    // c.RegisterClientStream<CurrentPosition, ProgressReport>();
+    // c.Subscribe<SomethingHappened, WhenSomethingHappens>();
 });
-
+/*
 //VOID TEST
 app.MapGet("/", async () =>
 {
