@@ -1,18 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FEPOC.Models", "FEPOC.Models\FEPOC.Models.csproj", "{2C0F9B3D-3239-4EFB-92B9-8DC88E2AA509}"
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33815.320
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FEPOC.Models", "FEPOC.Models\FEPOC.Models.csproj", "{2C0F9B3D-3239-4EFB-92B9-8DC88E2AA509}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FEPOC.GUI", "FEPOC.GUI\FEPOC.GUI.csproj", "{E30C65E2-621B-4796-9B43-0DD43C6782D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FEPOC.Contracts", "FEPOC.Contracts\FEPOC.Contracts.csproj", "{4F4C1DE2-27D2-457D-9815-A8236B311AD0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FEPOC.GuiServer", "FEPOC.GuiServer\FEPOC.GuiServer.csproj", "{C9762FE5-6795-4DE4-BF9D-8BC87663FCBF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FEPOC.DataServer", "FEPOC.DataServer\FEPOC.DataServer.csproj", "{909BD7FE-9592-4E84-9383-4F37445489A5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FEPOC.Contracts", "FEPOC.Contracts\FEPOC.Contracts.csproj", "{4F4C1DE2-27D2-457D-9815-A8236B311AD0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FEPOC.DataSource", "FEPOC.DataSource\FEPOC.DataSource.csproj", "{9CC29221-333F-4999-9A2C-77201B094B44}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FEPOC.DataServer", "FEPOC.DataServer\FEPOC.DataServer.csproj", "{909BD7FE-9592-4E84-9383-4F37445489A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FEPOC.DataSourceTest", "FEPOC.DataSourceTest\FEPOC.DataSourceTest.csproj", "{68B62DA5-0E59-4E8D-9CD7-2A8CB83BDD0F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FEPOC.DataSource", "FEPOC.DataSource\FEPOC.DataSource.csproj", "{9CC29221-333F-4999-9A2C-77201B094B44}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FEPOC.DataSourceTest", "FEPOC.DataSourceTest\FEPOC.DataSourceTest.csproj", "{68B62DA5-0E59-4E8D-9CD7-2A8CB83BDD0F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FEPOC.GUI", "FEPOC.GUI\FEPOC.GUI.csproj", "{AF0BB5A8-34EF-4717-A546-1C5E451C16F5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,14 +25,6 @@ Global
 		{2C0F9B3D-3239-4EFB-92B9-8DC88E2AA509}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C0F9B3D-3239-4EFB-92B9-8DC88E2AA509}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2C0F9B3D-3239-4EFB-92B9-8DC88E2AA509}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E30C65E2-621B-4796-9B43-0DD43C6782D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E30C65E2-621B-4796-9B43-0DD43C6782D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E30C65E2-621B-4796-9B43-0DD43C6782D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E30C65E2-621B-4796-9B43-0DD43C6782D2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C9762FE5-6795-4DE4-BF9D-8BC87663FCBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C9762FE5-6795-4DE4-BF9D-8BC87663FCBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C9762FE5-6795-4DE4-BF9D-8BC87663FCBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C9762FE5-6795-4DE4-BF9D-8BC87663FCBF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4F4C1DE2-27D2-457D-9815-A8236B311AD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4F4C1DE2-27D2-457D-9815-A8236B311AD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F4C1DE2-27D2-457D-9815-A8236B311AD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -48,5 +41,15 @@ Global
 		{68B62DA5-0E59-4E8D-9CD7-2A8CB83BDD0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68B62DA5-0E59-4E8D-9CD7-2A8CB83BDD0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{68B62DA5-0E59-4E8D-9CD7-2A8CB83BDD0F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF0BB5A8-34EF-4717-A546-1C5E451C16F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF0BB5A8-34EF-4717-A546-1C5E451C16F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF0BB5A8-34EF-4717-A546-1C5E451C16F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF0BB5A8-34EF-4717-A546-1C5E451C16F5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BD5DD5B6-6D7D-4051-803F-DBCD09FA9DE5}
 	EndGlobalSection
 EndGlobal

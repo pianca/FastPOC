@@ -1,9 +1,14 @@
 ﻿using FastEndpoints;
+using FastEndpoints.ClientGen;
 using FastEndpoints.Swagger;
 using FEPOC.Contracts;
 using FEPOC.DataServer.Handlers;
 using FEPOC.Models.InMemory;
+
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+
+using NJsonSchema.CodeGeneration.CSharp;
 
 var builder = WebApplication.CreateBuilder();
 builder.Logging.ClearProviders()
@@ -17,11 +22,8 @@ builder.WebHost.ConfigureKestrel(o =>
 });
 builder.AddHandlerServer();
 
-builder.Services.AddSingleton<InMemoryState>();
-// builder.Services.AddHostedService<TestWorker>();
-
-//gui
 builder.Services.AddFastEndpoints();
+
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddSwaggerDoc(
@@ -30,20 +32,67 @@ if (builder.Environment.IsDevelopment())
         removeEmptySchemas: true);
 }
 
+builder.Services.AddSingleton<InMemoryState>();
+// builder.Services.AddHostedService<TestWorker>();
+
+#region GUI
+builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
+
+//builder.Services.AddSignalR();
+//builder.Services.AddResponseCompression(opts =>
+//{
+//    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+//        new[] { "application/octet-stream" });
+//});
+#endregion
+
+
 var app = builder.Build();
 
 app.MapHandlers(h =>
 {
     // h.Register<SayHelloCommand, SayHelloHandler>();
-    
+
     h.Register<SyncInitCommand, SyncInitHandler, SyncInitResult>();
     h.Register<SyncChangeAreaCommand, SyncChangeAreaHandler, SyncChangeResult>();
     h.Register<SyncChangeInsediamentoCommand, SyncChangeInsediamentoHandler, SyncChangeResult>();
-    
+
     // h.RegisterServerStream<StatusStreamCommand, StatusUpdateHandler, StatusUpdate>();
     // h.RegisterClientStream<CurrentPosition, PositionProgressHandler, ProgressReport>();
     // h.RegisterEventHub<SomethingHappened>();
 });
+
+#region GUI
+app.UseBlazorFrameworkFiles();
+app.UseStaticFiles();
+app.MapFallbackToFile("index.html");
+app.UseRouting();
+//app.UseAuthorization();
+
+app.MapRazorPages();
+app.MapControllers();
+
+//app.MapHub<ChatHub>("/chathub");
+#endregion
+
+app.UseFastEndpoints(c =>
+{
+    c.Endpoints.ShortNames = true;
+    c.Serializer.Options.PropertyNamingPolicy = null;
+});
+
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseWebAssemblyDebugging();
+    app.UseOpenApi();
+    app.UseSwaggerUi3(s => s.ConfigureDefaults());
+}
+else
+{
+    app.UseExceptionHandler("/Error");
+}
 
 // app.MapGet("/event/{name}", async (string name) =>
 // {
@@ -60,38 +109,20 @@ app.MapHandlers(h =>
 //     }
 //     return Results.Ok("events published!");
 // });
-//
-// app.UseBlazorFrameworkFiles();
-// app.UseStaticFiles();
-// app.MapFallbackToFile("index.html");
-// app.UseRouting();
-// app.UseAuthorization();
-app.UseFastEndpoints(c =>
-{
-    c.Endpoints.ShortNames = true;
-    c.Serializer.Options.PropertyNamingPolicy = null;
-});
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseWebAssemblyDebugging();
-    app.UseOpenApi();
-    app.UseSwaggerUi3(s => s.ConfigureDefaults());
-}
-
-
+//app.UseResponseCompression();
 
 //NOTE: just run `dotnet run --generateclients true` anytime you wanna update the ApiClient in the FEPOC.GUI project
 
-// await app.GenerateClientsAndExitAsync(
-//     documentName: "MyApi",
-//     destinationPath: "../Client/HttpClient",
-//     csSettings: c =>
-//     {
-//         c.ClassName = "ApiClient";
-//         c.CSharpGeneratorSettings.Namespace = "FEPOC.GUI";
-//         c.CSharpGeneratorSettings.JsonLibrary = CSharpJsonLibrary.SystemTextJson;
-//     },
-//     tsSettings: null);
+await app.GenerateClientsAndExitAsync(
+    documentName: "MyApi",
+    destinationPath: "../FEPOC.GUI/HttpClient",
+    csSettings: c =>
+    {
+        c.ClassName = "ApiClient";
+        c.CSharpGeneratorSettings.Namespace = "FEPOC.GUI";
+        c.CSharpGeneratorSettings.JsonLibrary = CSharpJsonLibrary.SystemTextJson;
+    },
+    tsSettings: null);
 
 app.Run();
