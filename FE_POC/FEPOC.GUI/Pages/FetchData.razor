@@ -1,47 +1,199 @@
 ﻿@page "/fetchdata"
+@using DynamicData;
+@using DynamicData.Binding;
 @using FEPOC.GUI
+@using System.Collections.ObjectModel;
+@using ReactiveUI;
 @inject HttpClient Http
 
 <PageTitle>Weather forecast</PageTitle>
 
-<h1>Weather forecast</h1>
+<h1>Live</h1>
 
-<p>This component demonstrates fetching data from the server.</p>
-
-@*@if (forecasts == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
+<div class="d-flex flex-row my-2">
+    <button id="add" @onclick="AddRecords">Add Data</button>
+    <button id="del" @onclick="DelRecords">Delete Data</button>
+    <button id="update" @onclick="UpdateRecords">Update Data</button>
+</div>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Customer ID</th>
+            <th>Order ID</th>
+            <th>Frieght</th>
+            <th>Order Date</th>
+            <th>Ship Country</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var data in GridData)
+        {
             <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
+                <td>@data.CustomerID</td>
+                <td>@data.OrderID</td>
+                <td>@data.Freight</td>
+                <td>@data.OrderDate</td>
+                <td>@data.ShipCountry</td>
             </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in forecasts)
+
+            if (data.Products.Any())
             {
                 <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
+                    <td></td>
+                    <td colspan="3">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product ID</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var prod in data.Products)
+                                {
+                                    <tr>
+                                        <td>@prod.ProductId</td>
+                                        <td>@prod.Price</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </td>
                 </tr>
             }
-        </tbody>
-    </table>
-}*@
+        }
+    </tbody>
+</table>
 
 @code {
-    //private WeatherForecast[]? forecasts;
+    private SourceCache<OrdersDetailsObserveData, int> _cache;
+    private IDisposable _myOperation;
 
-    //protected override async Task OnInitializedAsync()
-    //{
-        //forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
-    //}
+    ReadOnlyObservableCollection<OrdersDetailsObserveData> _gridData;
+    public ReadOnlyObservableCollection<OrdersDetailsObserveData> GridData => _gridData;
+
+    static Random r = new Random();
+
+
+    protected override void OnInitialized()
+    {
+        _cache = new SourceCache<OrdersDetailsObserveData, int>(x => x.OrderID);
+        _myOperation = _cache.Connect()
+            // .Filter(trade=>trade.Status == TradeStatus.Live)
+            // .Transform(trade => new TradeProxy(trade))
+            .Sort(SortExpressionComparer<OrdersDetailsObserveData>.Descending(t => t.CustomerID))
+            // .ObserveOnDispatcher()
+            .Bind(out _gridData)
+            .DisposeMany()
+            .Subscribe();
+
+        foreach (var x in OrdersDetailsObserveData.GetRecords())
+        {
+            _cache.AddOrUpdate(x);
+        }
+    }
+
+    public void AddRecords()
+    {
+        _cache.AddOrUpdate(new OrdersDetailsObserveData(32341, "ALFKI", 4343, 2.3 * 43, false, new DateTime(1991, 05, 15), "Berlin", "Simons bistro", "Denmark", new DateTime(1996, 7, 16), "Kirchgasse 6"));
+    }
+
+    public void DelRecords()
+    {
+        var key = GetRandKey();
+        _cache.Remove(key);
+    }
+
+    private int GetRandKey()
+    {
+        var arr = GridData.Select(x => x.OrderID).ToArray();
+        var rand = r.Next(0, arr.Length);
+        var key = arr[rand];
+        return key;
+    }
+
+    public void UpdateRecords()
+    {
+        var key = GetRandKey();
+        var a = GridData.First(x => x.OrderID == key);
+        if (r.NextDouble() > 0.5)
+        {
+            var prods = a.Products;
+            prods.Add(new Product { ProductId = 666, Price = 666 });
+            _cache.AddOrUpdate(a with
+                {
+                    CustomerID = "UpdateA",
+                    Products = prods
+                });
+        }
+        else
+        {
+            var prods = a.Products;
+            prods.Clear();
+            _cache.AddOrUpdate(a with
+                {
+                    CustomerID = "UpdateB",
+                    OrderDate = DateTime.Now,
+                    Products = prods
+                });
+        }
+    }
+
+    public record OrdersDetailsObserveData : ReactiveRecord
+    {
+        public OrdersDetailsObserveData()
+        {
+        }
+
+        public OrdersDetailsObserveData(int OrderID, string CustomerId, int EmployeeId, double Freight, bool Verified, DateTime OrderDate, string ShipCity, string ShipName, string ShipCountry, DateTime ShippedDate, string ShipAddress)
+        {
+            this.OrderID = OrderID;
+            this.CustomerID = CustomerId;
+            this.Freight = Freight;
+            this.OrderDate = OrderDate;
+            this.ShipCountry = ShipCountry;
+            var prods = Enumerable.Range(0, r.Next(0, 3)).Select(x => new Product
+                {
+                    Price = r.Next(100, 1000),
+                    ProductId = r.Next(1, 1000000)
+                });
+            Products = new ObservableCollection<Product>(prods);
+        }
+
+        public static List<OrdersDetailsObserveData> GetRecords()
+        {
+            List<OrdersDetailsObserveData> order = new List<OrdersDetailsObserveData>();
+
+            for (int i = 0; i < 2; i++)
+            {
+                var c = i * 5;
+                order.Add(new OrdersDetailsObserveData(c + 1, "ALFKI", i + 0, 2.3 * i, false, new DateTime(1991, 05, 15), "Berlin", "Simons bistro", "Denmark", new DateTime(1996, 7, 16), "Kirchgasse 6"));
+                order.Add(new OrdersDetailsObserveData(c + 2, "ANATR", i + 2, 3.3 * i, true, new DateTime(1990, 04, 04), "Madrid", "Queen Cozinha", "Brazil", new DateTime(1996, 9, 11), "Avda. Azteca 123"));
+                order.Add(new OrdersDetailsObserveData(c + 3, "ANTON", i + 1, 4.3 * i, true, new DateTime(1957, 11, 30), "Cholchester", "Frankenversand", "Germany", new DateTime(1996, 10, 7), "Carrera 52 con Ave. Llano Largo"));
+                order.Add(new OrdersDetailsObserveData(c + 4, "BLONP", i + 3, 5.3 * i, false, new DateTime(1930, 10, 22), "Marseille", "Ernst Handel", "Austria", new DateTime(1996, 12, 30), "Magazinweg 7"));
+                order.Add(new OrdersDetailsObserveData(c + 5, "BOLID", i + 4, 6.3 * i, true, new DateTime(1953, 02, 18), "Tsawassen", "Hanari Carnes", "Switzerland", new DateTime(1997, 12, 3), "1029 - 12th Ave. S."));
+            }
+            return order;
+        }
+
+        // [Reactive]
+        public int OrderID { get; set; }
+        // [Reactive]
+        public string CustomerID { get; set; }
+        // [Reactive]
+        public double Freight { get; set; }
+        // [Reactive]
+        public DateTime OrderDate { get; set; }
+        // [Reactive]
+        public string ShipCountry { get; set; }
+
+        public ObservableCollection<Product> Products { get; set; }
+    }
+
+    public record Product : ReactiveRecord
+    {
+        public int ProductId { get; set; }
+        public int Price { get; set; }
+    }
+
 }
