@@ -38,7 +38,7 @@ public class TestWorker : BackgroundService
                 //     }
                 // }
 
-                await PipelineProcess(stoppingToken);
+                // await PipelineProcess(stoppingToken);
             }
             catch (Exception e) when (e is not OperationCanceledException &&
                                       e is not TaskCanceledException)
@@ -50,7 +50,9 @@ public class TestWorker : BackgroundService
 
     private Task PipelineProcess(CancellationToken stoppingToken)
     {
-        _inMemoryState.PrintState();
+        // _inMemoryState.PrintState();
+        
+        
         
         return Task.CompletedTask;
     }

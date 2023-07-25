@@ -1,12 +1,9 @@
-﻿using FEPOC.Contracts;
-using FastEndpoints;
-using FastEndpoints.ClientGen;
+﻿using FastEndpoints;
 using FastEndpoints.Swagger;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
-using FEPOC.DataServer;
+using FEPOC.Contracts;
 using FEPOC.DataServer.Handlers;
 using FEPOC.Models.InMemory;
-using NJsonSchema.CodeGeneration.CSharp;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 var builder = WebApplication.CreateBuilder();
 builder.Logging.ClearProviders()
@@ -15,22 +12,23 @@ builder.Logging.ClearProviders()
 builder.WebHost.ConfigureKestrel(o =>
 {
     o.ListenLocalhost(6000, o => o.Protocols = HttpProtocols.Http2); // for GRPC
+    o.ListenLocalhost(5000, o => o.Protocols = HttpProtocols.Http1AndHttp2); // for REST
     o.ListenLocalhost(5001, o => o.Protocols = HttpProtocols.Http1AndHttp2); // for REST
 });
 builder.AddHandlerServer();
 
 builder.Services.AddSingleton<InMemoryState>();
-builder.Services.AddHostedService<TestWorker>();
+// builder.Services.AddHostedService<TestWorker>();
 
 //gui
-// builder.Services.AddFastEndpoints();
-// if (builder.Environment.IsDevelopment())
-// {
-//     builder.Services.AddSwaggerDoc(
-//         s => s.DocumentName = "MyApi",
-//         shortSchemaNames: true,
-//         removeEmptySchemas: true);
-// }
+builder.Services.AddFastEndpoints();
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddSwaggerDoc(
+        s => s.DocumentName = "MyApi",
+        shortSchemaNames: true,
+        removeEmptySchemas: true);
+}
 
 var app = builder.Build();
 
@@ -68,18 +66,20 @@ app.MapHandlers(h =>
 // app.MapFallbackToFile("index.html");
 // app.UseRouting();
 // app.UseAuthorization();
-// app.UseFastEndpoints(c =>
-// {
-//     c.Endpoints.ShortNames = true;
-//     c.Serializer.Options.PropertyNamingPolicy = null;
-// });
-//
-// if (app.Environment.IsDevelopment())
-// {
-//     app.UseWebAssemblyDebugging();
-//     app.UseOpenApi();
-//     app.UseSwaggerUi3(s => s.ConfigureDefaults());
-// }
+app.UseFastEndpoints(c =>
+{
+    c.Endpoints.ShortNames = true;
+    c.Serializer.Options.PropertyNamingPolicy = null;
+});
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseWebAssemblyDebugging();
+    app.UseOpenApi();
+    app.UseSwaggerUi3(s => s.ConfigureDefaults());
+}
+
+
 
 //NOTE: just run `dotnet run --generateclients true` anytime you wanna update the ApiClient in the FEPOC.GUI project
 
