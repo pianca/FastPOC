@@ -1,4 +1,4 @@
-namespace FEPOC.Models.DTO;
+namespace FEPOC.Common.DTO;
 
 public interface IRecordChange
 {

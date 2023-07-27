@@ -1,9 +1,9 @@
 using System.Collections.Concurrent;
-using FEPOC.Models.InMemory;
+using FEPOC.Common.InMemory;
 
 namespace FEPOC.DataSource.Pipeline;
 
-public class InMemorySnapshotQueue : BlockingCollection<InMemoryStateSnapshot>
+public class InMemorySnapshotQueue : BlockingCollection<InMemoryStateSnapshotDTO>
 {
     
 }

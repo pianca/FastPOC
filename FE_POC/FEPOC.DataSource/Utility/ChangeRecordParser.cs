@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
 using FEPOC.DataSource.DAL.Models;
-using FEPOC.Models.DTO;
+using FEPOC.Common.DTO;
 
 namespace FEPOC.DataSource.Utility;
 

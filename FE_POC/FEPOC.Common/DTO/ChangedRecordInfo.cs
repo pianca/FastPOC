@@ -1,6 +1,6 @@
 using System;
 
-namespace FEPOC.Models.DTO;
+namespace FEPOC.Common.DTO;
 
 public record ChangedRecordInfo
 {

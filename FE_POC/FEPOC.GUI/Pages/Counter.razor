@@ -1,18 +1,216 @@
 ﻿@page "/counter"
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.SignalR.Client
+@using FEPOC.Common
+@using FEPOC.Common.DTO
+@using FEPOC.Common.InMemory
+@using DynamicData
+@using System.Collections.ObjectModel
+@using System.Reactive.Linq
+@using DynamicData.Binding
+@using ReactiveUI
+@implements IAsyncDisposable
 
-<PageTitle>Counter</PageTitle>
 
-<h1>Counter</h1>
 
-<p role="status">Current count: @currentCount</p>
+@* <div class="d-flex flex-row my-2"> *@
+@*     <button id="add" @onclick="AddRecords">Add Data</button> *@
+@*     <button id="del" @onclick="DelRecords">Delete Data</button> *@
+@*     <button id="update" @onclick="UpdateRecords">Update Data</button> *@
+@* </div> *@
+@if (LastUpdate.HasValue)
+{
+    <h1>@LastUpdate.Value.ToString("O")</h1>
+}
+else
+{
+    <h1>"Nessun data ricevuto"</h1>
+}
+<table class="table">
+    <thead>
+    <tr>
+        <th>Id</th>
+        <th>Codice</th>
+        <th>Descr</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var data in GridData)
+    {
+        <tr>
+            <td>@data.Id</td>
+            <td>@data.Codice</td>
+            <td>@data.Descr</td>
+        </tr>
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+        @* if (data.Aree.Any()) *@
+        @* { *@
+        @*     <tr> *@
+        @*         <td></td> *@
+        @*         <td colspan="3"> *@
+        @*             <table class="table"> *@
+        @*                 <thead> *@
+        @*                 <tr> *@
+        @*                     <th>Product ID</th> *@
+        @*                     <th>Price</th> *@
+        @*                 </tr> *@
+        @*                 </thead> *@
+        @*                 <tbody> *@
+        @*                 @foreach (var prod in data.Products) *@
+        @*                 { *@
+        @*                     <tr> *@
+        @*                         <td>@prod.ProductId</td> *@
+        @*                         <td>@prod.Price</td> *@
+        @*                     </tr> *@
+        @*                 } *@
+        @*                 </tbody> *@
+        @*             </table> *@
+        @*         </td> *@
+        @*     </tr> *@
+        @* } *@
+    }
+    </tbody>
+</table>
+
+
+<div class="form-group">
+    <label>
+        User:
+        <input @bind="userInput"/>
+    </label>
+</div>
+<div class="form-group">
+    <label>
+        Message:
+        <input @bind="messageInput" size="50"/>
+    </label>
+</div>
+<button @onclick="Send" disabled="@(!IsConnected)">Send</button>
+
+<hr>
+
+<ul id="messagesList">
+    @foreach (var message in messages)
+    {
+        <li>@message</li>
+    }
+</ul>
 
 @code {
-    private int currentCount = 0;
 
-    private void IncrementCount()
+    public record AreaVM : ReactiveRecord
     {
-        currentCount++;
+        public AreaVM(Area x)
+        {      
+            Id = x.Id;
+            IdInsediamento = x.IdInsediamento;
+            Descr = x.Descr;
+        }
+
+        public int Id { get; set; }   
+        public string Descr { get; set; } = null!; 
+        public int IdInsediamento { get; set; }
     }
+    
+    public record InsediamentoVM : ReactiveRecord
+    {
+        public InsediamentoVM(Insediamento x)
+        {
+            Id = x.Id;
+            Codice = x.Codice ?? "???";
+            Descr = x.Descr;
+            Areas = new ObservableCollection<AreaVM>();
+        }
+
+        public int Id { get; set; }
+        public string? Codice { get; set; }
+        public string Descr { get; set; }
+        public ObservableCollection<AreaVM> Areas { get; set; }
+    }
+
+    DateTime? LastUpdate = null;
+    private HubConnection? hubConnection;
+    private List<string> messages = new List<string>();
+    private string? userInput;
+    private string? messageInput;
+
+    private SourceCache<Insediamento, int> _cache;
+    private SourceCache<Area, int> _areas;
+    private IDisposable _myOperation;
+
+    ReadOnlyObservableCollection<AreaVM> _areasData;
+    ReadOnlyObservableCollection<InsediamentoVM> _gridData;
+    public ReadOnlyObservableCollection<InsediamentoVM> GridData => _gridData;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _cache = new SourceCache<Insediamento, int>(x => x.Id);
+        _myOperation = _cache.Connect()
+    // .Filter(trade=>trade.Status == TradeStatus.Live)
+            .Transform(x => new InsediamentoVM(x))
+            .Sort(SortExpressionComparer<InsediamentoVM>.Descending(t => t.Id))
+    // .ObserveOnDispatcher()
+            .Bind(out _gridData)
+            .DisposeMany()
+            .Subscribe();
+    
+    //todo: fixa
+       //  _areas.Connect().Transform(x => new AreaVM(x))
+       //      .Bind(out _areasData);
+       // var aaa =  _areas.Connect().Transform(x => new AreaVM(x)).TransformToTree();
+        
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/guihub"))
+            .Build();
+
+        hubConnection.On<InMemoryStateSnapshotDTO>(Messages.NEW_SNAPSHOT, NewSnapshot);
+
+        hubConnection.On<ChangedInsediamento>(Messages.NEW_CHANGE, NewChange);
+
+        hubConnection.On<ChangedArea>(Messages.NEW_CHANGE, NewChange);
+
+        await hubConnection.StartAsync();
+    }
+
+    private void NewChange(ChangedInsediamento change)
+    {
+        Console.WriteLine("NewChange insediamento");
+        _cache.AddOrUpdate(change.Record);
+        StateHasChanged();
+    }
+
+    private void NewChange(ChangedArea change)
+    {
+        Console.WriteLine("NewChange area");
+        //todo: fixa
+        // _cache.AddOrUpdate(change.Record);
+        StateHasChanged();
+    }
+
+    private void NewSnapshot(InMemoryStateSnapshotDTO snapshot)
+    {
+        Console.WriteLine("NewSnapshot");
+        _cache.AddOrUpdate(snapshot.Insediamenti);
+        StateHasChanged();
+    }
+
+    private async Task Send()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("SendMessage", userInput, messageInput);
+        }
+    }
+
+    public bool IsConnected =>
+        hubConnection?.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+
 }

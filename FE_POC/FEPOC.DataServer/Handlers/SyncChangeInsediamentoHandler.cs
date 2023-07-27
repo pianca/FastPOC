@@ -1,6 +1,6 @@
 using FastEndpoints;
 using FEPOC.Contracts;
-using FEPOC.Models.InMemory;
+using FEPOC.Common.InMemory;
 
 namespace FEPOC.DataServer.Handlers;
 

@@ -1,9 +1,9 @@
 ﻿using FastEndpoints;
-using FEPOC.Models.InMemory;
+using FEPOC.Common.InMemory;
 
 namespace FEPOC.DataServer.Endpoints.Snapshot;
 
-public class GetSnapshot : EndpointWithoutRequest<InMemoryStateSnapshot>
+public class GetSnapshot : EndpointWithoutRequest<InMemoryStateSnapshotDTO>
 {
     public InMemoryState InMemoryState { get; set; }
     public override void Configure()
@@ -12,7 +12,7 @@ public class GetSnapshot : EndpointWithoutRequest<InMemoryStateSnapshot>
         AllowAnonymous();
     }
 
-    public override Task<InMemoryStateSnapshot> ExecuteAsync(CancellationToken ct)
+    public override Task<InMemoryStateSnapshotDTO> ExecuteAsync(CancellationToken ct)
     {
         return Task.FromResult(InMemoryState.GetSnapshot());
     }

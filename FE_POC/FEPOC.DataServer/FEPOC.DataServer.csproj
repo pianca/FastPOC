@@ -10,14 +10,17 @@
   <ItemGroup>
     <PackageReference Include="Mapster" Version="7.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <ProjectReference Include="..\FEPOC.Contracts\FEPOC.Contracts.csproj" />
-    <ProjectReference Include="..\FEPOC.GUI\FEPOC.GUI.csproj" />
-
     <PackageReference Include="FastEndpoints" Version="5.*" />
     <PackageReference Include="FastEndpoints.ClientGen" Version="5.*" />
     <PackageReference Include="FastEndpoints.Swagger" Version="5.*" />
     <PackageReference Include="FastEndpoints.Messaging.Remote" Version="5.14.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.9" />
+    <PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
+    <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
+    <PackageReference Include="Serilog.Exceptions.EntityFrameworkCore" Version="8.4.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
+    <PackageReference Include="Serilog.Sinks.Seq" Version="5.2.2" />
+    <PackageReference Include="System.Reactive" Version="6.0.0" />
 
   </ItemGroup>
 
@@ -26,9 +29,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="FEPOC.Contracts">
-      <HintPath>bin\Debug\net7.0\FEPOC.Contracts.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\FEPOC.Common\FEPOC.Common.csproj" />
+    <ProjectReference Include="..\FEPOC.Contracts\FEPOC.Contracts.csproj" />
+    <ProjectReference Include="..\FEPOC.GUI\FEPOC.GUI.csproj" />
   </ItemGroup>
 
 </Project>

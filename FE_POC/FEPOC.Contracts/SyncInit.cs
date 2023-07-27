@@ -1,11 +1,11 @@
 ﻿using FastEndpoints;
-using FEPOC.Models.InMemory;
+using FEPOC.Common.InMemory;
 
 namespace FEPOC.Contracts;
 
 public class SyncInitCommand : ICommand<SyncInitResult>
 {
-    public InMemoryStateSnapshot Snapshot { get; set; }
+    public InMemoryStateSnapshotDTO Snapshot { get; set; }
 }
 
 public class SyncInitResult : CommonResult

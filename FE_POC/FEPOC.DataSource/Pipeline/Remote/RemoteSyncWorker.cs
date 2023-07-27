@@ -1,6 +1,6 @@
 using FastEndpoints;
 using FEPOC.Contracts;
-using FEPOC.Models.DTO;
+using FEPOC.Common.DTO;
 
 namespace FEPOC.DataSource.Pipeline.Remote;
 

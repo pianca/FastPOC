@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using FEPOC.Models.DTO;
+using FEPOC.Common.DTO;
 using Microsoft.Extensions.Logging;
 
-namespace FEPOC.Models.InMemory;
+namespace FEPOC.Common.InMemory;
 
 public partial class InMemoryState
 {

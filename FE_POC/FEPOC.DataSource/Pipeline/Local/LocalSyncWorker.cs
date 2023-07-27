@@ -1,8 +1,8 @@
 using FEPOC.DataSource.DAL.Models;
 using FEPOC.DataSource.Pipeline.Remote;
 using FEPOC.DataSource.Utility;
-using FEPOC.Models.DTO;
-using FEPOC.Models.InMemory;
+using FEPOC.Common.DTO;
+using FEPOC.Common.InMemory;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,6 +19,7 @@ public class LocalSyncWorker : BackgroundService
     private readonly LocalSyncErrorsQueue _errorsQueue;
     private readonly ParserErrorQueue _parserErrorQueue;
     private readonly FactoryErrorQueue _factoryErrorQueue;
+    private long _lastProcessedId;
 
     public LocalSyncWorker(ILogger<LocalSyncWorker> logger,
         InMemoryState inMemoryState,
@@ -69,7 +70,7 @@ public class LocalSyncWorker : BackgroundService
             catch (Exception e) when (e is not OperationCanceledException &&
                                       e is not TaskCanceledException)
             {
-                _logger.LogError(e, "Exception catched");
+                _logger.LogError(e, "LocalSyncWorker: Exception catched");
             }
         }
     });
@@ -106,8 +107,17 @@ public class LocalSyncWorker : BackgroundService
                 .ToListAsync(cancellationToken: stoppingToken);
             _logger.LogInformation("InitState load {insediamentisCount} insediamentis", insediamenti.Count);
 
+            long lastChangeId = 0;
+            if (await db.ChangedRecordsQueues.Where(x => x.LocalSync == "I").AnyAsync())
+            {
+                lastChangeId = await db.ChangedRecordsQueues
+                    .Where(x => x.LocalSync == "I")
+                    .Select(x => x.Id)
+                    .MaxAsync(stoppingToken);
+            }
+
             //init local in memory state
-            if (_inMemoryState.Init(insediamenti, aree) == false)
+            if (_inMemoryState.Init(insediamenti, aree, lastChangeId) == false)
             {
                 _logger.LogError("InitState failed");
                 return false;
@@ -128,7 +138,7 @@ public class LocalSyncWorker : BackgroundService
 
     private async Task PipelineProcess(CancellationToken stoppingToken)
     {
-        var list = await LoadUnprocessedChangedRecords(stoppingToken);
+        var list = await LoadUnprocessedChangedRecords(_lastProcessedId, stoppingToken);
         foreach (var changeEvent in list)
         {
             _logger.LogInformation("Start processing a record from db with id {id}", changeEvent.Id);
@@ -148,6 +158,7 @@ public class LocalSyncWorker : BackgroundService
                     _logger.LogError("The parser fail to handle the record from db {changeEvent}", changeEvent);
                 }
 
+                _lastProcessedId = changeEvent.Id;
                 _parserErrorQueue.Enqueue(new ParserError(changeEvent, changedRecordValue.Exception));
                 continue;
             }
@@ -167,6 +178,7 @@ public class LocalSyncWorker : BackgroundService
                     _logger.LogError("The factory fail to handle the change {changeEvent}", changeEvent);
                 }
 
+                _lastProcessedId = changeEvent.Id;
                 _factoryErrorQueue.Enqueue(new FactoryError(changeInfo, createdObjectResult.Result,
                     createdObjectResult.Exception));
                 continue;
@@ -181,11 +193,14 @@ public class LocalSyncWorker : BackgroundService
                 _errorsQueue.Enqueue(changedRecord);
                 _logger.LogWarning("The memory state manager fail to handle the record from db {changedRecord}",
                     changedRecord);
+                
+                _lastProcessedId = changeEvent.Id;
                 continue;
             }
 
             //in memory state updated successfully
             _logger.LogInformation("Update local inMemoryState");
+            _lastProcessedId = changeEvent.Id;
 
             //send change to cloud
             _toRemoteQueue.Add(changedRecord);
@@ -195,14 +210,14 @@ public class LocalSyncWorker : BackgroundService
         }
     }
 
-    private async Task<List<ChangedRecordsQueue>> LoadUnprocessedChangedRecords(CancellationToken stoppingToken)
+    private async Task<List<ChangedRecordsQueue>> LoadUnprocessedChangedRecords(long lastProcessedId, CancellationToken stoppingToken)
     {
         using var db = new DAL.SqlServer.DB();
         var list = await db.ChangedRecordsQueues
-            .Where(x => x.LocalSync == "F")
+            .Where(x => x.Id > lastProcessedId && x.LocalSync == "F")
             .OrderBy(x => x.Id)
             .AsNoTracking()
-            .ToListAsync();
+            .ToListAsync(stoppingToken);
         _logger.LogDebug("Loaded {recordCount} records from db", list.Count);
         return list;
     }

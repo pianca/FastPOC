@@ -3,17 +3,42 @@ using FastEndpoints.ClientGen;
 using FastEndpoints.Swagger;
 using FEPOC.Contracts;
 using FEPOC.DataServer.Handlers;
-using FEPOC.Models.InMemory;
-
+using FEPOC.Common.InMemory;
+using FEPOC.DataServer;
+using FEPOC.DataServer.Hub;
+using FEPOC.DataServer.Services;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 using NJsonSchema.CodeGeneration.CSharp;
+using Serilog;
+using Serilog.Settings.Configuration;
 
 var builder = WebApplication.CreateBuilder();
-builder.Logging.ClearProviders()
-    .AddConsole()
-    .SetMinimumLevel(LogLevel.Information);
+
+// builder.Logging.ClearProviders()
+//     .AddConsole()
+//     .SetMinimumLevel(LogLevel.Information);
+var bootstrapConfiguration = new ConfigurationBuilder()
+    .AddEnvironmentVariables()
+    .AddCommandLine(args)
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+#if DEBUG
+    .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true)
+#endif
+    // .AddJsonFile(.CUSTOM_CONFIG_FILENAME, optional: true, reloadOnChange: true)
+    .Build();
+var logConfigBuilder = new LoggerConfiguration();
+var run = DateTime.Now;
+Log.Logger = logConfigBuilder
+    .ReadFrom.Configuration(bootstrapConfiguration, "Serilog", ConfigurationAssemblySource.AlwaysScanDllFiles)
+    .Enrich.WithProperty("Application", Const.AppName)
+    .Enrich.WithProperty("Run", run)
+    .CreateBootstrapLogger();
+
+builder.Logging.ClearProviders();
+builder.Host.UseSerilog();
+
 builder.WebHost.ConfigureKestrel(o =>
 {
     o.ListenLocalhost(6000, o => o.Protocols = HttpProtocols.Http2); // for GRPC
@@ -33,18 +58,20 @@ if (builder.Environment.IsDevelopment())
 }
 
 builder.Services.AddSingleton<InMemoryState>();
+builder.Services.AddSingleton<GuiDataStream>();
+
 // builder.Services.AddHostedService<TestWorker>();
 
 #region GUI
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-//builder.Services.AddSignalR();
-//builder.Services.AddResponseCompression(opts =>
-//{
-//    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
-//        new[] { "application/octet-stream" });
-//});
+builder.Services.AddSignalR();
+builder.Services.AddResponseCompression(opts =>
+{
+    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+        new[] { "application/octet-stream" });
+});
 #endregion
 
 
@@ -73,6 +100,7 @@ app.UseRouting();
 app.MapRazorPages();
 app.MapControllers();
 
+app.MapHub<GuiHub>("/guihub");
 //app.MapHub<ChatHub>("/chathub");
 #endregion
 

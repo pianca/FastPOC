@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using FEPOC.Models.DTO;
+using FEPOC.Common.DTO;
 
 namespace FEPOC.DataSource.Pipeline.Remote;
 

@@ -1,5 +1,5 @@
 using FastEndpoints;
-using FEPOC.Models.DTO;
+using FEPOC.Common.DTO;
 
 namespace FEPOC.Contracts;
 

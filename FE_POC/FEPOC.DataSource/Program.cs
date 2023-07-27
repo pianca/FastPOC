@@ -4,7 +4,7 @@ using FEPOC.DataSource.Pipeline;
 using FEPOC.DataSource.Pipeline.Local;
 using FEPOC.DataSource.Pipeline.Remote;
 using FEPOC.DataSource.Utility;
-using FEPOC.Models.InMemory;
+using FEPOC.Common.InMemory;
 using Mapster;
 
 TypeAdapterConfig.GlobalSettings.EnableJsonMapping();

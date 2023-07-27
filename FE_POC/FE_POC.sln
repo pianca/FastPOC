@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33815.320
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FEPOC.Models", "FEPOC.Models\FEPOC.Models.csproj", "{2C0F9B3D-3239-4EFB-92B9-8DC88E2AA509}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FEPOC.Common", "FEPOC.Common\FEPOC.Common.csproj", "{2C0F9B3D-3239-4EFB-92B9-8DC88E2AA509}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FEPOC.Contracts", "FEPOC.Contracts\FEPOC.Contracts.csproj", "{4F4C1DE2-27D2-457D-9815-A8236B311AD0}"
 EndProject

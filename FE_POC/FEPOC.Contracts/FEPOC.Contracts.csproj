@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FEPOC.Models\FEPOC.Models.csproj" />
+    <ProjectReference Include="..\FEPOC.Common\FEPOC.Common.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 using FastEndpoints;
 using FEPOC.Contracts;
-using FEPOC.Models.InMemory;
+using FEPOC.Common.InMemory;
 
 namespace FEPOC.DataServer.Handlers;
 
@@ -19,10 +19,7 @@ public sealed class SyncInitHandler : ICommandHandler<SyncInitCommand, SyncInitR
     {
         try
         {
-            if (_inMemory.Init(
-                    command.Snapshot.Insediamenti.Values.ToList(),
-                    command.Snapshot.Aree.Values.ToList())
-               )
+            if (_inMemory.Init(command.Snapshot))
             {
                 _logger.LogInformation("SyncInitHandler ok");
                 return Task.FromResult(new SyncInitResult()
